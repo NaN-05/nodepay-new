@@ -1,470 +1,271 @@
+import requests
+import asyncio
+import aiohttp
+import time
+import uuid
+import cloudscraper
+import pyfiglet
+from colorama import Fore
+from loguru import logger
+from fake_useragent import UserAgent
 
-cjW0byNP = __import__('base64')  
-mSBNgGE3 = cjW0byNP.b64decode  
-GXG9Rihl = ''.join  
-hMi9U3yt = exec  
+def display_header():
+    # Tambahkan ASCII art yang sudah Anda sediakan
+    custom_ascii_art = f"""
+    {Fore.CYAN}
+         █████╗ ██╗██████╗ ██████╗ ██████╗  ██████╗ ██████╗ 
+        ██╔══██╗██║██╔══██╗██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
+        ███████║██║██████╔╝██║  ██║██████╔╝██║   ██║██████╔╝
+        ██╔══██║██║██╔══██╗██║  ██║██╔══██╗██║   ██║██╔═══╝ 
+        ██║  ██║██║██║  ██║██████╔╝██║  ██║╚██████╔╝██║     
+        ╚═╝  ╚═╝╚═╝╚═╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     
 
-m8qDEWU2 = ['WVZjeGQySXpTakJKUjBaNlpWYzFhbUZYT0V0aFZ6RjNZak5LTU',
-'VsSFJuQmlNbWd3WkVoQlMyRlhNWGRpTTBvd1NVaFNjR0pYVlV0',
-'aFZ6RjNZak5LTUVsSVZqRmhWMUZMWVZjeGQySXpTakJKUjA1el',
-'lqTldhMk15VG5sWldFSnNZMmR3YldOdE9YUkpSM2gyV2pOV2VX',
-'UlRRbkJpV0VKMlkyNVJaMkpIT1c1YU1sWjVRMjFhZVdJeU1HZF',
-'pNamx6WWpOS2FHSlhSV2RoVnpGM1lqTktNRWxGV25aamJWVnpT',
-'VVpPTUdWWGVHeE1RMEp3WW0xc01FTnRiSFJqUnpsNVpFTkNlbV',
-'ZZVFV0RGJXeDFZVmhSYjFsWVZqQmlNMHBzWXpKV01GQldVbmxr',
-'VjFWd1EyZHdhMXBYV1dkak1taDJaREU1TTFsWVNuVmhWelZ1Uz',
-'BOck5rTnBRV2RKUTBKb1l6Sk9jR0ZXT1dsWlZ6VjFXbGhKWjFC',
-'VFFtMUphVWxwUTI1MFIySXpTbXhNYTJSVFVsVldUMlpUUkdsc2',
-'IycHBiRzlxYVd4dmFtbHNiMnBwYkc5cWFXeGFZMmMwY0dGSk5I',
-'QmhTVFJ3VjFnMGNHRkpOSEJoU1RSd1lVazBjR0ZKTkhCaFNUUn',
-'dZVWswY0ZkWVNVOUxWMmxQUzFkcFQwdFhhVTlMVjJsUFMxZHBU',
-'MHRYYVU5TFZteDVSR2xzYjJwcGJHOXFhV3h2YW1sc2IycHBiRz',
-'lxYVd4dmFtbHNXbU5uU1U5TFYybFBTMWRwVDB0WGFVOUxWMmxQ',
-'UzFkcFQwdFhhVTlMVm14NVJHbHNiMnBwYkc5cWFXeHZhbWxzYj',
-'JwcGJHOXFhV3h2YW1sc1dtTm5RM1ZMVjJsUFMxZHBUMHRXYkU5',
-'TFZtdFBTMVpyVDB0WGFVOUxWMmxQUzFac0swdFhhVTlMVjJsUF',
-'MxWnJaVXRYYVU5TFYybFBTMVpzVDB0V2EwOUxWbXRQUzFkcFQw',
-'dFhhVTlMVm13clMxZHBUMHRYYVU5TFZteFBTMVpyVDB0V2EwOU',
-'xWMmxQUzFkcFQwdFdiQ3RMVjJsUFMxZHBUMHRXYkU5TFZtdFBT',
-'MVpyVDB0WGFVOUxWMmxQUzFac0swdFhhVTlMVjJsUFMxWnNUMH',
-'RXYTA5TFZtdFBTMVpyVDB0WGFVOUxWMmxQUzFac0swdFhhVTlM',
-'VjJsUFMxWnNUMHRXYTA5TFZtdFBTMWRwVDB0WGFVOUxWbXgzY2',
-'1sc2IycHBiRzlxYVd4dmFtbHNiMnBwYkc5cWFXeHZhbWxzYjJw',
-'cGJGcElhV3h2YW1sc2IycHBiRnBJYVd4dmFtbHNiMnBwYkc5cW',
-'FXeHZhbWxzYjJwcGJHOXFhV3hhVkdsc1dqTnBiRzlxYVd4dmFt',
-'bHNXa1ZuU1U5TFYybFBTMWRwVDB0V2EyVkxWMmxQUzFkcFQwdF',
-'hhVTlMVjJsUFMxZHBUMHRYYVU5TFZteFBTMVp1WlV0WGFVOUxW',
-'MmxQUzFaclUwRm5TVTlMVjJsUFMxZHBUMHRXYTJWTFYybFBTMW',
-'RwVDB0WGFVOUxWMmxQUzFkcFQwdFhhVTlMVm14UFMxWnVVWEpw',
-'Ykc5cWFXeHZhbWxzV2xScGJGcEVhV3hhUkdsc2IycHBiRzlxYV',
-'d4YVNHbHNiMnBwYkc5cWFXeGFTR2xzYjJwcGJHOXFhV3hhVkds',
-'c1drUnBiRnBFYVd4dmFtbHNiMnBwYkZwbWFXeHZhbWxzYjJwcG',
-'JGcEZaMGxQUzFkcFQwdFhhVTlMVm10bFMxZHBUMHRYYVU5TFZt',
-'eFBTMVpyVDB0V2EwOUxWMmxQUzFkcFQwdFdiQ3RMVjJsUFMxZH',
-'BUMHRXYTFOQlowbFBTMWRwVDB0WGFVOUxWbXRsUzFkcFQwdFhh',
-'VTlMVm14UFMxWnJUMHRXYTA5TFZtdFBTMVp1VTBGTE5IQmhTVF',
-'J3WVVrMGNGZFNTVU5FYVd4dmFtbHNiMnBwYkZwSWFXeHZhbWxz',
-'YjJwcGJGcElhV3h2YW1sc2IycHBiRnBGWjBsUFMxZHBUMHRYYV',
-'U5TFZtdGxTMWRwVDB0WGFVOUxWMmxQUzFkcFQwdFhhVTlMVjJs',
-'UFMxWnNUMHRXYm1WTFYybFBTMWRwVDB0V2ExTkJaelJ3WVVrMG',
-'NHRkpOSEJYVWpSd1YyRTBjR0ZKTkhCaFNUUndZVWswY0dGSk5I',
-'QmhTVFJ3WVVrMGNGZFZOSEJYWkRSd1lVazBjR0ZKTkhCWFVrbE',
-'RRV2RKUTBGTE5IQlhZVFJ3VjFFMGNGZGtTVU5FYVd4YWNtbHNX',
-'a1JwYkZvemFXeGFjbWxzV2tScGJGb3phV3hhY21sc1drUnBiRm',
-'93WjBsUFMxWnRkVXRXYTA5TFZtdFBTMVpyVDB0V2EwOUxWbXRQ',
-'UzFadVUwUnBiRnB5YVd4YVJHbHNXakJuU1U5TFZtMTFTMVpyVD',
-'B0V2JsTkVhV3hhY21sc1drUnBiRnBFYVd4YVJHbHNXa1JwYkZw',
-'RWFXeGFNR2MwY0ZkaE5IQlhVVFJ3VjJSSlEwRm5TVU5CUzBOMV',
-'MxZHBUMHRYYVU5TFZtd3JTMWRwVDB0WGFVOUxWMmxQUzFac2VV',
-'Rm5TVTlMVjJsUFMxZHBUMHRXYkN0TFYybFBTMWRwVDB0WGFVOU',
-'xWMmxQUzFkcFQwdFhhVTlMVjJsUFMxWnNLMHRYYVU5TFYybFBT',
-'MVpzSzB0WGFVOUxWMmxQUzFkcFQwdFhhVTlMVjJsUFMxZHBUMH',
-'RXYkhsRWFXeHZhbWxzYjJwcGJHOXFhV3h2YW1sc2IycHBiRzlx',
-'YVd4dmFtbHNXbVpwYkc5cWFXeHZhbWxzYjJwcGJHOXFhV3h2YW',
-'1sc2IycHBiRnBqWjBsRFFXZEpRWEpwYkc5cWFXeHZhbWxzV2to',
-'cGJHOXFhV3h2YW1sc2IycHBiRzlxYVd4YVkyZEpUMHRYYVU5TF',
-'YybFBTMVpyWlV0WGFVOUxWMmxQUzFac1QwdFdhMDlMVm10UFMx',
-'WnJUMHRXYTA5TFZtNWxTMWRwVDB0WGFVOUxWbXRsUzFkcFQwdF',
-'hhVTlMVm14UFMxWnJUMHRXYTA5TFYybFBTMWRwVDB0V2JDdExW',
-'MmxQUzFkcFQwdFdiRTlMVm10UFMxWnJUMHRXYTA5TFZtdFBTMV',
-'p1WlV0WGFVOUxWMmxQUzFac1QwdFdhMDlMVm10UFMxZHBUMHRY',
-'YVU5TFZteDVRV2RKUTBGTE5IQmhTVFJ3WVVrMGNGZFNOSEJoU1',
-'RSd1lVazBjRmRWTkhCaFNUUndZVWswY0ZkWVNVOUxWMmxQUzFk',
-'cFQwdFdhMlZMVjJsUFMxZHBUMHRYYVU5TFYybFBTMWRwVDB0WG',
-'FVOUxWMmxQUzFac0swdFhhVTlMVjJsUFMxWnJaVXRYYVU5TFYy',
-'bFBTMVpyVTBGbk5IQmhTVFJ3WVVrMGNGZFNOSEJoU1RSd1lVaz',
-'BjR0ZKTkhCaFNUUndZVWswY0ZkWVNVTkVhV3h2YW1sc2IycHBi',
-'RzlxYVd4dmFtbHNiMnBwYkc5cWFXeGFWR2xzV2pCblNVTkJaME',
-'4xUzFkcFQwdFhhVTlMVm10bFMxZHBUMHRYYVU5TFZtdGxTMVp0',
-'ZFV0WGFVOUxWMmxQUzFac0swdFhhVTlMVjJsUFMxWnJaVXRXYl',
-'hWTFZtdFBTMVpyVDB0V2EwOUxWbXRQUzFkcFQwdFhhVTlMVm10',
-'bFMxZHBUMHRYYVU5TFZtdGxTMWRwVDB0WGFVOUxWbXRUUVdjMG',
-'NHRkpOSEJoU1RSd1YxSTBjR0ZKTkhCaFNUUndWMVUwY0ZkUk5I',
-'QlhVVFJ3VjJSSlEwUnBiRzlxYVd4dmFtbHNXbFJwYkZwRWFXeG',
-'FSR2xzYjJwcGJHOXFhV3hhWTJkSlEwRm5RM1ZMVjJsUFMxZHBU',
-'MHRXYTJWTFYybFBTMWRwVDB0V2ExTkVhV3hhY21sc2IycHBiRz',
-'lxYVd4dmFtbHNiMnBwYkZwSWFXeHZhbWxzYjJwcGJHOXFhV3h2',
-'YW1sc2IycHBiRzlxYVd4dmFtbHNXa2hwYkc5cWFXeHZhbWxzV2',
-'tocGJHOXFhV3h2YW1sc2IycHBiRzlxYVd4dmFtbHNiMnBwYkZw',
-'VWFXeGFNMmxzYjJwcGJHOXFhV3h2YW1sc2IycHBiRzlxYVd4dm',
-'FtbHNiMnBwYkZwbWFXeHZhbWxzYjJwcGJGcEZaMGxQUzFkcFQw',
-'dFhhVTlMVm10VFFXZEpRMEZMTkhCWFlUUndWMUUwY0Zka05IQl',
-'hZVFJ3VjFFMGNGZGtTVU5FYVd4YWNtbHNXa1JwYkZwRWFXeGFS',
-'R2xzV2pOcGJGcHlhV3hhUkdsc1drUnBiRnBFYVd4YVJHbHNXa1',
-'JwYkZwRWFXeGFNMmxzV25KcGJGcEVhV3hhTTJsc1duSnBiRnBF',
-'YVd4YVJHbHNXa1JwYkZwRWFXeGFSR2xzV2pCbk5IQlhZVFJ3Vj',
-'FFMGNGZFJOSEJYVVRSd1YxRTBjRmRSTkhCWFVUUndWMlEwY0Zk',
-'aE5IQlhVVFJ3VjJSSlEwUnBiRnB5YVd4YVJHbHNXakJuU1VOQl',
-'owTnVkRlJrU0d4eldsTTFVMUpXVGtaV1JqbENWRVY0T1ZoSE4z',
-'ZHVOVk5ZU1VaU1JsUkZWa2hWYTBaT1NVUnZaMkZJVWpCalNFMD',
-'JUSGs1TUV4dE1XeE1NRVp3WTIxU2VXSXpRa3BpYms1d1drZFdl',
-'Vk5WVW1OaWRrTm1helZuWjFJd2JGVlRSbFpEU1VSdloyRklVak',
-'JqU0UwMlRIazVibUZZVW05a1YwbDFXVEk1ZEV3eVJuQmpiVko1',
-'WWpOQ2NHSnVUbkJhUjFaNVkzZHZhVWxwU1V0SlEwRm5TVWhDZV',
-'dGWE5UQkxSMFo2V1RKc2NGZ3lTbWhpYlRWc1kybHJTMGxEUVdk',
-'SlIwNTJZbTFhY0dOdE1HZFFVMEp3WW01Q01XUkRhRzFKYm5SSF',
-'lqTktiRXhzU2taU1NERmpZbXhXZWxwVFFuQmtRMEpvWkVOQ05X',
-'SXpWbmxKUnprelltbENlV0ZZVG5KSlUwSmpZbXhDZVZwWVRucE',
-'pSVloxWkVkV2VVbElVblpKUjA1MlltNVNjR0p1Vm14SlJ6bDVT',
-'VVZPTUdOdGQzSlJlVUl3WW5sQ2FsbFhOV3BhVjNkMVRHazBaMl',
-'V4VGpCbFYzaHNUR3hLUmxVd1ZsVllNRVpOVkVnd2FVdFJiMHRK',
-'UTBGblNVZHNiVWxIVG5aaWJWcHdZMjB3ZFdNelVubGhXRUZ2Uz',
-'FOQk9WQlRRV2xKYW05TFNVTkJaMGxEUVdkSlEwSjNZMjFzZFdS',
-'RGFHMUpiblJIWWpOS2JFeHJaRk5TVlZaUFpsVk9kbUp1VW5CaW',
-'JsWndZbTFqZFV4cE5UZFZNMUkxWWtkVmRWVnJWbFJTVmxKbVVW',
-'VjRUV1pUU1hCRGFVRm5TVU5DYkdKSVRteFBaMjluU1VOQlowbE',
-'RRV2RKU0VKNVlWYzFNRXRIV1dsbE1GcDJZMjFWZFZWclZrVm1W',
-'VlkwWVZoU2NHSnRZM1ZNYVRVM1ZUTlNOV0pIVlhWVmExWlVVbF',
-'pTWmxGVmVFMW1VMGx3UTJsQlowbERRV2RKUTBGbldsaG9jR1JE',
-'WjNCRFoyOXFTVVZPZG1KdVRqQlpWelV3WTNkd1VWTlZOVWhZTU',
-'d4UFZrVldVMVpyUmsxSlJEQm5UbXBCUzFWclZsVlZhMnhHVlhs',
-'Qk9VbEVXWGREWjI5cVNVVlNkbUpYUm5CaWFVSkNWVVZyWjFRd2',
-'VFVkRhVTFuWVVoU01HTklUVFpNZVRsMVlqSlNiR1F5Um5samVU',
-'VjFZakpTYkdOSFJqVk1iVVp3U1VNNFoyRklVakJqU0UwMlRIaz',
-'VkV1I1TlhWaU1sSnNZMGRHTlV4dFJuQkpTSGRuWVVoU01HTklU',
-'VFpNZVRsMVpIcEpkV0p0T1d0YVdFSm9aVk0xYUdGVFFqaEpSV3',
-'hSVDJsQk1VNUROSGxPVkZWMVRWUnJlVXhxUlRKT1oyOXFTVWRv',
-'TUdSSVFucFBhVGgyV1ZoQ2NFeHROWFphUjFaM1dWaHJkVmxYYT',
-'JkbVEwSktWVVJ2WjAxVVozVk5WRTB5VEdwRk1FMTVOSGhPYW10',
-'elNVUlZlVXhxWXpOTWFrVXpUVU0wZUU5RVNVdERhVTFuVkRCNF',
-'JVbEZhRkJWTVZGTFNYbEJaMGxEUVdsVk1GWlVWVEJzVUZScFNU',
-'WkpRMHB2WkVoU2QyTjZiM1pNTWtaM1lWTTFkV0l5VW14alIwWT',
-'FURzA1ZVZwNU9XaGpSMnQyV1ZoV01HRkRPWHBhV0U1NllWYzVk',
-'VWxwZDB0SmVVRm5TVU5CYVZWRmJFOVNlVWsyU1VOS2IyUklVbm',
-'RqZW05MlRESTFNMHh0TlhaYVIxWjNXVmhyZFdJelNtNU1Na1oz',
-'WVZNNWRWcFlVak5pTTBweVRETkNjR0p0WTJsRFoyOXFTVVpTYk',
-'dNelVuQmliV05uWmtOQ1IySXpWblZhUTBKMVlqSlNiR05IUmpW',
-'SlNFcHNXVmQzWjJGWVFXZFpWMUpyWTIxV2VtTjVRVFpWUTBJNF',
-'NVVk9jMkl6Vm10YWJYaG9ZMjFWWjJGSE9YcGtRMEpwWlZoQ2FH',
-'TXpUbXhhUTBWTFVrVTVUbEZWYkU5WU1FWlJVMU5CT1VsSWMwdE',
-'pRMEZuU1VOS1ZGSldUbFJUVlRsUFNXcHZaMGx0YURCa1NFRTJU',
-'SGs0ZUU5RE5IaE5lbGwxVFZSUmVreHFSVEpQVXpsb1kwZHJkbG',
-'xZVmpCaFF6bDZXbGhPZW1GWE9YVkphWGRMU1VOQlowbERTbEZU',
-'VlRWSVNXcHZaMGx0YURCa1NFRTJUSGs0TVU1RE5IbE9WRlYxVF',
-'ZScmVVeHFSVEpPYVRsb1kwZHJkbUp0VmpCa01qbDVZWGs1ZDJG',
-'WE5XNUpaM0E1UTJkd1JGUXdOVTlTVlU1VlUxVTVUMWd4VGxWUl',
-'ZsSkdWWGxCT1VsSWMwdEpRMEZuU1VOS1JGUXdOVTlTVlU1VlVs',
-'VlJhVTlwUVhoTVFXOW5TVU5CWjBsclVrcFZNRTVRVkdzMVJsRX',
-'hVa1pTUTBrMlNVUkpjME5wUVdkSlEwRnBWR3M1VDFKV09VUlVN',
-'RFZQVWxWT1ZWTlZPVTlKYW05blRYZHdPVU5uY0hwa1IwWXdaRm',
-'hPWmxreU9YVmliVlpxWkVOQk9VbEZUbEJVYXpWR1VURlNTbFF3',
-'TldaVk1WSkNWa1ZXVkZkNVNrOVVNRFZHV0RCT1VGUnJOVVpSTV',
-'ZKS1ZEQTBhVmhSY0dsamJUa3pZekpXZVZneWJHdEpSREJuVkcw',
-'NWRWcFJjR2haTWs1MlpGYzFNRmd5YkhWYWJUaG5VRk5DTjJaUm',
-'NITlpXRTR3V0ROQ2NHSnRaR1prUjJ4MFdsTkJPVWxJZERsSlEw',
-'RkxRMjFTYkZwcFFqRmtWMnhyWkdwUmIwdFViMHRKUTBGblNVaE',
-'tiR1JJVm5saWFVSjZaRWhKYjJSWVZuQmFRelV4WkZkc2EwNURa',
-'M0JMVVc5blNVTkJaME50VW14YWFVSXlXVmQ0Y0ZwR09YbGFXRT',
-'UzUzBoS2JHTXpRWEJQWjI5blNVTkJaMkZYV1dkaWJUa3dTVWhL',
-'YkdNelFXZGlNMGxuU1cxT2RscEhWV2xKUnpWMlpFTkNjR0pwUW',
-'5sYVdFNTNTVWM1ZVVsSVNteGpNMEppU1cxT2RscEhWV2xZVTBF',
-'NFNVUkJOa05wUVdkSlEwRm5TVU5CWjJOdFJuQmpNbFZuVm0xR2',
-'MyUlhWa1pqYmtwMlkybG5hVk5YTlRKWlYzaHdXa05DZVZwWVRu',
-'ZGlNalY2V2xOSmNFTnBRV2RKUTBKNVdsaFNNV050TkdkamJWWj',
-'ZZMEZ2WjBsRFFXZERiVVo2WlZjMWFrbEhVbXhhYVVKNVdsYzFh',
-'MXBZU21aalNFcDJXbTFzYzFwV09YQmliVnAyUzBoQ2VXSXphRF',
-'ZNUTBJd1lqSjBiR0pwYXpaRGFVRm5TVU5DYm1KSE9XbFpWM2Ru',
-'V1c1S2RtUXpUbXhqYkRsd1drTjNaMWxYVG1waU0xWjFaRVk1Y0',
-'dKdFduWkRaMjluU1VOQloyUklTalZQWjI5blNVTkJaMGxEUVdk',
-'SlJ6VjNXRE5PYkdNelRuQmlNalZtWVZjMWJXSjVRVGxKUjNoMl',
-'dWZFNabU15Vm5wak1teDJZbXc1Y0dKdFduWkxTRUo1WWpOb05V',
-'dFJiMHRKUTBGblNVTkJaMGxEUW5CYWFVSjFZak5SWjJKdVFtWm',
-'pNbFo2WXpKc2RtSnNPWEJpYlZwMlQyZHZaMGxEUVdkSlEwRm5T',
-'VU5CWjBsRFFXcEpSV1JzWW0xV2VWbFlVbXhKUnpWc1pIbENhV0',
-'50T1ROak1sWjVXREpzYTBOcFFXZEpRMEZuU1VOQlowbERRV2RK',
-'UjBwNVlqTmtlbHBZU21aaFYxRm5VRk5DTVdSWGJHdGthbEZ2Uz',
-'FGdlowbERRV2RKUTBGblNVTkJaMGxEUW5sYVdFNTNZakkxZWxw',
-'VFFUbEpSMFl6V1Zkc01FbEhUbWhpUjNobVdWaENjRXRGVWxCVV',
-'ZVWktWR3c1UWxWRmJHSkpiRTVHVlRGT1NsUXdOR2xZVTNkblpU',
-'TXdjMGxJUW5saU0yZzFURU5DTUdJeWRHeGlhV3RMU1VOQlowbE',
-'RRV2RKUTBGblNVTkJaMlJ0Um5OaFYxSm1ZMjFXZW1ORGFIbGFX',
-'RTUzWWpJMWVscFRhMHRKUTBGblNVTkJaMGxEUVdkSlEwRm5XVm',
-'RPYW1JelZuVmtSamx3WW0xYWRrbEVNR2RqYlZaNlkwYzVkV015',
-'Vm1KSmJWSm9aRWRGYVZoUmIyZEpRMEZuU1VOQlowbERRV2RKUT',
-'BKd1dtbENhRmt5VG5aa1Z6VXdXREpzZFZwdE9IVmFNbFl3UzBO',
-'S01XRlhVV2xMVkc5TFNVTkJaMGxEUVdkSlEwRm5TVU5CWjBsRF',
-'FXZEpTRTVvWkcxV1ptTXlWbnBqTW14MlltdzVjR0p0V25aTFNF',
-'SjVZak5vTlV4RFFtaFpNazUyWkZjMU1GZ3liSFZhYlRod1EybE',
-'JaMGxEUVdkSlEwRm5TVU5CWjBsRFFXZEpRMEpvWkRKR2NHUkRR',
-'bnBrUjBaNVpFWTVkMkZYTlc1TFNFSjVZak5vTlV4RFFqQmlNbl',
-'JzWW1sclMwbERRV2RKUTBGblNVTkJaMGxEUVdkYVYzaDZXbFJ2',
-'UzBsRFFXZEpRMEZuU1VOQlowbERRV2RKUTBGblNVZG9hR0p0VW',
-'5OYVZqbHpZakprZG1SWVVXOWpTRXAyWlVocmNFTnBRV2RKUTBG',
-'blNVTkJaMXBYZUhwYVZHOUxTVU5CWjBsRFFXZEpRMEZuU1VOQl',
-'oxbFhUbXBpTTFaMVpFWTVjR0p0V25aSlJEQm5ZbTVDWm1NeVZu',
-'cGpNbXgyWW13NWNHSnRXblpEYVVGblNVTkJaMGxEUVdkSlEwRm',
-'5TVWRHTTFsWGJEQkpTRTR3V1ZoS01GZ3pRbkJpYldOdlkwaEtk',
-'bVZJYTNOSlNGSjJZVEpXZFV0UmIyZEpRMEZuV2xob2FscFlRak',
-'JKUlZZMFdUSldkMlJIYkhaaWFVSm9ZM2xDYkU5bmIyZEpRMEZu',
-'U1VOQlowbEhlSFphTW1Sc1kyazFiR051U25aamFXaHRTV3RXZV',
-'dOdE9YbEpSMngxU1VoS2JHSnRVbXhqYkRsM1kyMDViV0ZYZUd4',
-'WU1teDFXbTA0WjFwdE9YbEpTRUo1WWpOb05VbElkSGRqYlRrMF',
-'pWZ3dOa2xJZEd4bVUwbHdRMmxCWjBsRFFXZEpRMEZuV2xoS2VX',
-'SXpTbVppVjFaNll6SkdibHBUUVRsSlNFNHdZMmxvYkV0UmIyZE',
-'pRMEZuU1VOQlowbEhiRzFKUjBaMVpWTm9kMkZJU21oak1sVm5Z',
-'VmMwWjFwWVNubGlNMHBtWWxkV2VtTXlSbTVhVTBKdFlqTkpaMk',
-'5IYUhsWldFNXNTVWRzZFVsR2MwdEpRMEZuU1VOQlowbERRV2RK',
-'UTBGblNXNU9iR0p1VVdkTlZFRjRUVk5CYjJGWE5UQmFXRXAxV1',
-'ZkM1oxcFlTbmxpTTBsd1NVZDBiRnBZUW1oaVIyd3lXbE5DZDJG',
-'WE5XNUpTRkp3WWxkV2RtUllVVGRKUnpWMlNVZE9jMkl6VG14Sl',
-'IxcDVXVmN4YkVsSVNteFpNbFp3WkcxV2EwbHBkMHRKUTBGblNV',
-'TkJaMGxEUVdkSlEwRm5TV3BWZDAxRFFrcGlibEpzWTIwMWFHSk',
-'RRbFJhV0VveVdsaEpaMUpZU25saU0wbHBRMmxCWjBsRFFXZEpR',
-'MEZuV0ZOck5rTnBRV2RKUTBGblNVTkJaMGxEUVdkSlIzaDJXak',
-'prYkdOcE5YQmliVnAyUzBkWmFWVnRWblJpTTFwd1ltMWpaMXBZ',
-'U25saU0wbG5ZMGhLZG1WSWEyZGFia3AyWWxOQ01HRkhWV2RpUj',
-'J4NlpFUnZaMlV6UW5saU0yZzFabE5KY0VOcFFXZEpRMEZuU1VO',
-'QlowbERRV2RKU0Vwc1lsYzVNbHBXT1hkamJUazBaVlk1YldOdE',
-'9YUllNbmh3WXpOUmIyTklTblpsU0d0d1EybEJaMGxEUVdkSlEw',
-'Rm5TVU5CWjBsSVNteGtTRlo1WW1sQ1QySXlOV3hEYVVGblNVTk',
-'JaMGxEUVdkYVYzaDZXbFJ2UzBsRFFXZEpRMEZuU1VOQlowbERR',
-'V2RpUnpsdVdqSldlVXh0Vm5samJUbDVTMGRaYVZFeU9YVmliVl',
-'pxWkVkc2RtSnBRbXhqYmtwMlkycHZaMlV5VmpsSmFXdExTVU5C',
-'WjBsRFFXZEpRMEZuU1VOQloyTnRWakJrV0VwMVNVaENlV0l6YU',
-'RWRFozQm9Zek5zZFZsNVFtdGFWMWxuV1RKR2MySkdPV2hqUjJ0',
-'dlpGaEtjMHhEUW10WldGSm9URU5DZDJOdE9UUmxVM2RuWkVjNW',
-'NscFhOSEJQWjI5blNVTkJaMkZIVm1oYVIxWjVZM2xCT1VsSWMw',
-'dEpRMEZuU1VOQlowbERRV2xSV0ZZd1lVYzVlV0ZZY0doa1IyeD',
-'JZbWxKTmtsSFdXbFJiVlpvWTIxV2VVbElkREJpTW5Sc1ltNHdh',
-'VXhCYjJkSlEwRm5TVU5CWjBsRFNrUmlNalV3V2xjMU1FeFdVal',
-'ZqUjFWcFQybEJhVmxZUW5kaVIyeHFXVmhTY0dJeU5IWmhiazUy',
-'WW1sSmMwTnBRV2RKUTBGblNVTkJaMGxzVm5wYVdFbDBVVmRrYk',
-'dKdVVXbFBhVUZwVkZjNU5tRlhlSE5aVXpneFRHcEJaMHRHWkhC',
-'aWJWSjJaRE5OWjFSc1VXZE5WRUYxVFVSeloxWXliSFZPYWxFM1',
-'NVaG5NazVEYTJkUldFSjNZa2RXV0ZwWFNreGhXRkYyVGxSTk0w',
-'eHFUVEpKUTJoTVUwWlNUbFJEZDJkaVIyeHlXbE5DU0ZwWFRuSm',
-'llV3RuVVRKb2VXSXlNV3hNZWtWNVQwTTBkMHhxUVhWTlEwSlVX',
-'VmRhYUdOdGEzWk9WRTB6VEdwTk1rbHBkMHRKUTBGblNVTkJaMG',
-'xEUVdsUlYwNXFXbGhDTUVscWIyZEpiVVozWTBkNGNGa3lSakJo',
-'VnpsMVRESndlbUl5TkdsTVFXOW5TVU5CWjBsRFFXZEpRMHBDV1',
-'RKT2JHTklVWFJVUjBaMVdqTldhRm95VldsUGFVRnBXbGMwZEZa',
-'V1RYTmFWelEzWTFRd2QweHFWV2xNUVc5blNVTkJaMGxEUVdkSl',
-'EwcFRXbGRhYkdOdFZubEphbTluU1cxb01HUklRbnBQYVRoMldW',
-'aENkMHh0TlhaYVIxWjNXVmhyZFZsWGEybE1RVzluU1VOQloyWl',
-'JiMHRKUTBGblNVaFNlV1ZVYjB0SlEwRm5TVU5CWjBsRFFucFpN',
-'MHBvWTBkV2VVbEVNR2RaTW5oMlpGZFNlbGt6U21oalIxWjVURz',
-'FPZVZwWFJqQmFWamw2V1ROS2FHTkhWbmxMUTJ0TFEybEJaMGxE',
-'UVdkSlEwRm5ZMjFXZW1OSE9YVmpNbFZuVUZOQ2Vsa3pTbWhqUj',
-'FaNVRHNUNkbU16VVc5a1dFcHpURU5DY1dNeU9YVlFWMUpvWkVk',
-'RmMwbEhhR3haVjFKc1kyNU5PV0ZIVm1oYVIxWjVZM2wzWjJOSV',
-'NuWmxSMnhzWTNveE4wTnBRV2RKUTBGblNVTkJaMGxEUVdkSlEw',
-'Rm5TVU5CWjBsRFFXZEpRMEZuU1VOQlowbERRV2RKUTBGblNXMW',
-'9NR1JJUVdsUGFVSjNZMjA1TkdWVGQyZEpiV2d3WkVoQ2VrbHFi',
-'MmRqU0VwMlpVaHNPVXhEUWpCaFZ6RnNZak5XTUZCVVRYZExVVz',
-'lMU1VOQlowbERRV2RKUTBKNVdsaE9kMkl5TlhwYVV6VjVXVmRz',
-'ZWxwV09XMWlNMHBtWXpOU2FHUklWbnBMUTJ0TFNVTkJaMGxEUV',
-'dkSlEwSjVXbGhTTVdOdE5HZGtiVVp6WVZkU1ptTnRWbnBqUTJo',
-'NVdsaE9kMkl5TlhwYVV6VnhZekk1ZFV0RGEzQkRhVUZuU1VOQ2',
-'JHVkhUbXhqU0ZGblVsaG9hbHBZUWpCaFZ6bDFTVWRHZWtsSFZU',
-'WkRhVUZuU1VOQlowbERRV2RpUnpsdVdqSldlVXh0Vm5samJUbD',
-'VTMGRaYVZKWVNubGlNMGxuV2toV2VXRlhOVzVKUlVaUlUxTkNh',
-'bGxYZUhOUGFVSTNXbGd3YVV0UmIyZEpRMEZuU1VOQlowbElTbW',
-'hoV0U1c1NVWmFhR0pJVm14U1dFcDVZak5KYjFwcFNrZFpWMnh6',
-'V2xkUloxRldRa3BKUjA1b1lrZDNaMlJIT0dkbE0xWjVZa2d3YV',
-'V0UmIwdFpXRTQxWW0xTloxcEhWbTFKU0U0d1dWaEtNRmd6UW5C',
-'aWJXTnZZMGhLZG1WSWEzTkpTRkoyWVRKV2RVdFViMHRKUTBGbl',
-'NVaFNlV1ZVYjB0SlEwRm5TVU5CWjBsRFFqTmhSMnh6V2xOQ1ZX',
-'TnVWbXhQWjI5blNVTkJaMGxEUVdkSlEwRm5TVU5DYUdReVJuQm',
-'tRMEozWVZjMWJrdElRbmxpTTJnMVRFTkNNR0l5ZEd4aWFXdExT',
-'VU5CWjBsRFFXZEpRMEZuU1VOQloxbFlaR2hoV0ZGbldWaE9OV0',
-'p0VG5CaWVUVjZZa2RXYkdORGFGRlRWVFZJV0RCc1QxWkZWbE5X',
-'YTBaTlMxRnZaMGxEUVdkYVdHaHFXbGhDTUVsSFJucGxWelZxWV',
-'ZjNGRWRXlSblZaTWxaellrZFdhMUpZU25saU0wazJRMmxCWjBs',
-'RFFXZEpRMEZuWWtjNWJsb3lWbmxNYld4MVdtMDRiMXBwU2xGaF',
-'Z6VnVTVWhTYUdNeWMyZGFiVGw1U1VoQ2VXSXphRFZKU0hSM1ky',
-'MDVOR1ZZTUdka01rWjZTVWRPYUdKdFRteGlSM2hzV2tOSmNFTn',
-'BRV2RKUTBKc1pVZE9iR05JVVdkU1dHaHFXbGhDTUdGWE9YVkpS',
-'MFo2U1VkVk5rTnBRV2RKUTBGblNVTkJaMkpIT1c1YU1sWjVURz',
-'FXZVdOdE9YbExSMWxwVWxoS2VXSXpTV2RoVnpSbll6TlNhR051',
-'VW1aalIyeDFXbmxDYldJelNXZGpTRXAyWlVocloyVXpRbmxpTT',
-'JnMVpsUnZaMlV5VmpsSmFXdExTVU5CWjBsRFFXZEpRMEZMV1Zo',
-'T05XSnRUV2RhUjFadFNVaENjR0p0WTI5alNFcDJaVWhyYzBsSV',
-'VuWmhNbFoxUzFSdlMwbERRV2RKUjJSellqSkthR0pEUW5OWldF',
-'NHdXRE5DY0dKdFpHWmtSMngwV2xOM1oxVnJWbFZWYTJ4R1ZYbD',
-'NaMk16VW1oa1NGWjZXREpPZG1KdE5XeFpNMUZMUTJsQlowbERR',
-'bXBrV0VwNVdsYzFNRmd6VW5CaVYxVm5VRk5DTUdGWE1XeE1ibE',
-'p3WWxkVmIwdFJiMHRKUTBGblNVZHNiVWxJUW5saU0yZzFTVWRz',
-'ZFVsSGVHaGpNMUptWTBkc2RWb3hPVEJoVnpGc1NVZEdkVnBEUV',
-'c5Wk0xWjVZMjFXZFdSR09UQmhWekZzU1VNd1oySkhSbnBrUmps',
-'M1lWYzFibGd6VW5CaVYxWmlZMGhLZG1WSWJHUkxVMEU0U1VaQ1',
-'NsUnJaR1pUVlRWVlVsWktWMUZWZHpaRGFVRm5TVU5CWjBsRFFX',
-'ZGlSemx1V2pKV2VVeHRiSFZhYlRodldtbEtWR0V5YkhkalIyeD',
-'FXbmxDZDJGWE5XNUpSMXAyWTJsQ2QyTnRPVFJsVTBJM1NVaENl',
-'V0l6YURWbVUzZG5ZbTA1TUVsSFZuVmlNMVp1WVVOQ01HRlhNV3',
-'hKUjFaeldWaENlbHBYVVdsTFVXOW5TVU5CWjBsRFFXZEpTRXBz',
-'WkVoV2VXSm5iMHRKUTBGblNVZDRhR016VW1aalIyeDFXakU1TU',
-'dGWE1XeFhNMEo1WWpOb05WaFRRVGxKUjA0eFkyNUtiR0p1VW1a',
-'a1IyeDBXbEZ2UzBsRFFXZEpTRko1WlZSdlMwbERRV2RKUTBGbl',
-'NVTkNhMWxZVW1oSlJEQm5aWGR2WjBsRFFXZEpRMEZuU1VOQlow',
-'bERRV2xoVjFGcFQybENhRmt5VG5aa1Z6VXdXREpzZFZwdE9IVm',
-'FNbFl3UzBOS01XRlhVV2xMVTNkTFNVTkJaMGxEUVdkSlEwRm5T',
-'VU5CWjBsdFNubGlNMlI2V2xoS1ptRlhVV2xQYVVKcFkyMDVNMk',
-'15Vm5sWU1teHJURU5CWjBOcFFXZEpRMEZuU1VOQlowbERRV2RK',
-'UTBvd1lWY3hiR016VW1oaVdFRnBUMmxDY0dKdVVXOWtSMngwV2',
-'xNMU1HRlhNV3hMUTJ0d1EybEJaMGxEUVdkSlEwRm5abEZ2UzBs',
-'RFFXZEpRMEZuU1VOQ2VWcFlUbmRpTWpWNldsTkJPVWxIUmpOWl',
-'Yyd3dTVWRPYUdKSGVHWlpXRUp3UzBWU1VGUlZSa3BVYkRsQ1ZV',
-'VnNZa2xzUWtwVWEyTnBXRk4zWjFwSFJqQlpVM2RuWTBoS2RtVk',
-'lhM05KU0ZKMllUSldkVXRSYjJkSlEwRm5TVU5CWjBsSGJHMUpT',
-'RXBzWXpOQ2RtSnVUbXhYZVVwcVlqSlNiRWxzTUdkUVZEQm5UVV',
-'J2UzBsRFFXZEpRMEZuU1VOQlowbERRV2RpUnpsdVdqSldlVXh0',
-'YkhWYWJUaHZXbWxLVVdGWE5XNUpTRTR4V1RKT2JHTXpUbTFrVj',
-'NkblpHMXNhRWxJUW5saU0yZzFTVWgwZDJOdE9UUmxXREEyU1Vo',
-'MGVWcFlUbmRpTWpWNldsZ3dhVXRSYjJkSlEwRm5TVU5CWjBsRF',
-'FXZEpRMEpUVWxaU1UxTlZWbFJKUkRCblRVRnZaMGxEUVdkSlEw',
-'Rm5TVU5CWjBsRFFucGtSMFl3WkZoT1psa3lPWFZpYlZacVpFTk',
-'JPVWxGVGxCVWF6VkdVVEZTU2xRd05XWlZNVkpDVmtWV1ZGZDVT',
-'a1JVTURWUFVsVk9WVkpWVVdsWVVXOW5TVU5CWjBsRFFXZEpSMV',
-'p6WXpKVk5rTnBRV2RKUTBGblNVTkJaMGxEUVdkSlIyaG9ZbTFT',
-'YzFwV09YZGhWelZ1V0RKYWFHRlhkMjlqU0VwMlpVaHJjMGxJU2',
-'14ak0wSjJZbTVPYkV0UmIyZEpRMEZuV2xob2FscFlRakJKUlZZ',
-'MFdUSldkMlJIYkhaaWFVSm9ZM2xDYkU5bmIyZEpRMEZuU1VOQl',
-'owbEhlSFphTW1Sc1kyazFiR051U25aamFXaHRTV3hDY0dKdFky',
-'ZGFiVVp3WWtkV2EwbElXbkJaVTBKM1kyMDVOR1ZUUWpkalNFcD',
-'JaVWhzT1U5cFFqZGFXREJwUzFGdlowbERRV2RKUTBGblNVZG9h',
-'R0p0VW5OYVZqbDNZVmMxYmxneVdtaGhWM2R2WTBoS2RtVklhM0',
-'5KUlRWMlltMVZjRU5uY0d0YVYxbG5ZVWRHZFZwSGVHeFlNMEp3',
-'WW0xa1pscHRSbkJpUTJoM1kyMDVOR1ZUZDJkamJWWjZZMGM1ZF',
-'dNeVZYQlBaMjluU1VOQloxb3llSFpaYlVaelNVWktSbFpHU2tw',
-'U1ZrMXpTVWhPTUZsWVVqRmpNVGxxWWpJMWRWcFhUakJEWjI5bl',
-'NVTkJaMVZyVmxWVmEyeEdWWGxCY2xCVFFYaERhVUZuU1VOQ2NG',
-'cHBRbmxhV0U1M1lqSTFlbHBUUW1oaWJWRm5ZMjFXZW1OSE9YVm',
-'pNbFYxV2pKV01FdERTbXBpTWxKc1NXbHJaMUJVTUdkT1JFRjZU',
-'MmR2WjBsRFFXZEpRMEZuU1Vkb2FHSnRVbk5hVmpsellqSmtkbV',
-'JZVVc5alNFcDJaVWhyY0VOcFFXZEpRMEpzWWtkc2JVbEdTa1pX',
-'UmtwS1VsWk5aMUJEUVhsUFoyOW5TVU5CWjBsRFFXZEpTRTR3V1',
-'ZoU01XTXhPV3BpTWpWMVdsZE9NRWxFTUdkUk1EbFBWR3RXUkZa',
-'RmJGQlViRGxVVmtWR1ZWSldUbUpKYTFKS1ZUQk9VRlJyTlVaUk',
-'1WSkdVa05LWkVOcFFXZEpRMEpzWWtoT2JFOW5iMmRKUTBGblNV',
-'TkJaMGxJVGpCWldGSXhZekU1YW1JeU5YVmFWMDR3U1VRd1oxRX',
-'dPVTlVYTFaRVZrVnNVRlJzT1ZSV1JVWlZVbFpPWWtsclVrcFZN',
-'RTVRVkdzMVJsRXhVa1pTUTBwa1EyZHdhMXBYV1dkaFIwWjFXa2',
-'Q0YkZneWVIWmFNamt4WkVOb2QyTnRPVFJsVTJzMlEybEJaMGxE',
-'UW01aVJ6bHBXVmQzWjJNelVtaGtTRlo2V0RKT2RtSnROV3haTT',
-'FGelNVZEdhbGt5T1RGaWJsSm1ZVmMxYldKM2IwdEpRMEZuU1Vo',
-'T01GbFlVakZqTVRscVlqSTFkVnBYVGpCSlJEQm5VVEE1VDFScl',
-'ZrUldSV3hRVkd3NVZGWkZSbFZTVms1aVNXczFVRlJyVm1aUk1E',
-'bFBWR3RXUkZaRmJGQlVhVXBrUTJsQlowbERRbWhaTWs1MlpGYz',
-'FNRmd5YkhWYWJUaG5VRk5DTjJaUmIyZEpRMEZuWXpKR01scFdP',
-'WHBrUjBZd1pGaE5iMk5JU25abFNHdHpTVVUxZG1KdFZYQkRhVU',
-'ZuU1VOQ2MySXlaRzVhV0VsMVlWYzFiV0o1YUcxSmEzaDJXakpr',
-'YkZwRFFuWmtXRkZuV1ZjMWEwbEhUbk5hVjBaNVdsZFJaMk15Vm',
-'5wak1teDJZbWxDY0dKdFduWkpSMXAyWTJsQ2QyTnRPVFJsVTBJ',
-'M1kwaEtkbVZJYkRsSmFXdExRMjFTYkZwcFFuTmlNa1pyV0ROQ2',
-'VXSXphSEJhV0UxdlkwaEtkbVZJYkdaYWJXeHpXbE5yTmtOcFFX',
-'ZEpRMEl3WTI1ck5rTnBRV2RKUTBGblNVTkJaMlF5YkRCaFEwSj',
-'JZMGRXZFV0SVFubGlNMmcxV0RKYWNHSkhWWE5KUTJSNVNubHJa',
-'MWxZVFdkYWJXeHpXbFJ2UzBsRFFXZEpRMEZuU1VOQlowbERRV2',
-'RqU0VwMlpVZHNiR041UVRsSlIxcHdZa2RWZFdOdFZtaGFRMmR3',
-'VEc1T2QySkhiREJpUjJ4MVdsaE5iMHRSYjJkSlEwRm5TVU5CWj',
-'BsSVNteGtTRlo1WW1sQ2QyTnRPVFJoVjFaNlEybEJaMGxEUW14',
-'bFIwNXNZMGhSWjFKWWFHcGFXRUl3WVZjNWRVbEhSbnBKUjFVMl',
-'EybEJaMGxEUVdkSlEwRm5Za2M1YmxveVZubE1iVlo1WTIwNWVV',
-'dEhXV2xTYlVad1lrZFdhMGxJVW5aSlIzaDJXVmRSWjJOSVNuWm',
-'xSMnhzWTNwdloyVXlWamxKYVd0TFNVTkJaMGxEUVdkSlEwSjVX',
-'VmRzZWxwVFFsUmxXRTR3V2xjeFJtVkhiREJMUTBwR1pVZHNNR0',
-'ZYTlc1SlIxSXhXbE5DTUdKNVFtMVpWMnh6WkZoS2JFbEhiSFZK',
-'UjNoMldWZFNjR0p0WTJkalNFcDJaVWRzYkdONVNYQkRaM0JyV2',
-'xkWloyTXlSakphVmpsNlpFZEdNR1JZVFc5alNFcDJaVWhyYzBs',
-'SVRqQlpXRkl4WTNsck5rTnBRV2RKUTBKM1dWaE9la2xEUVV0RG',
-'JWSnNXbWxDZWxsWVdteFlNMDVzWXpOT2NHSXlOV1poVnpWdFlu',
-'bG9kMk50T1RSbFUzZG5Xa2RHTUZsVGF6WkRhVUZuU1VOQ2ExbF',
-'lVbWhZTTFKMldETk9hR1J0VldkUVUwSTNRMmxCWjBsRFFXZEpR',
-'MEZuU1c1V2NGcERTVFpKUjFKb1pFZEZkVm95VmpCTFEwb3hZVm',
-'RSYVV0VGQwdEpRMEZuU1VOQlowbERRV2xaYmtwMlpETk9iR05z',
-'T1hCYVEwazJTVWRLZVdJelpIcGFXRXBtWVZkUlowbEJiMmRKUT',
-'BGblpsRnZaMGxEUVdkalIwWjZZM2R2UzFwSFZtMUpSM2gyV1Zk',
-'U1ptTXlWbnBqTW14MlltdzVjR0p0V25aTFNFSjVZak5vTlV0VW',
-'IwdEpRMEZuU1VoS2JHUklWbmxpYVVJM1psTkJaME5uY0d0YVYx',
-'bG5ZVmhPWm1SdFJuTmhWMUptWTBoS2RtVklhMjlqU0VwMlpVaH',
-'JjRTluYjJkSlEwRm5ZMjFXTUdSWVNuVkpSbEo1WkZkVlowbEJi',
-'MHRhUjFadFNVaEtiR0pYT1RKYVZqbDNZMjA1TkdWV09XMWpiVG',
-'wwV0RKNGNHTXpVVzlqU0VwMlpVaHJjRTluYjJkSlEwRm5ZMGRH',
-'ZW1ONVFXZERaM0JvWXpOc2RWbDVRbXRhVjFsbllsZEdjR0pwWj',
-'NCUFoyOW5TVU5CWjFsWGVITllNMEo1WWpOb2NGcFlUV2RRVTBK',
-'ellqSkdhMWd6UW5saU0yaHdXbGhOYjBvelFubGlNMmh3V2xoTm',
-'RXUklhREJLZVd0blNVRnZaMGxEUVdkSmVVSlZXVmQwYkVsSVVu',
-'WmhNbFoxU1Vkc2RXTklWakJKUjFKd1kyMVdhbVJIZURWSlIxcD',
-'VZakl3WjJSSGFHeEpTRlo2V2xoSlMwbERRV2RKU0ZKMllUSldk',
-'VWxFTUdkaFZ6VjNaRmhSYjBsck5YWmFSMVozV1ZocloyUkhPWE',
-'phVnpRMlNVTkpjRXh1VGpCamJXeDNTME5yUzBsRFFXZEpSMnh0',
-'U1VjMWRtUkRRakJpTW5Sc1ltcHZTMGxEUVdkSlEwRm5TVU5DZD',
-'JOdGJIVmtRMmRwVmtjNWNscFhOR2RaTWtaMVltMDVNRWxIU214',
-'SlIxWjBZMGhTTlV4cFFrWmxSMnd3WVZjMWJrbElVbTlhVTBKM1',
-'kyMDVibU50Um5STWFVbHdRMmxCWjBsRFFXZEpRMEZuV2xob2NH',
-'UkRaM0JEWjI5blNVTkJaMlF5YUhCaVIxVm5Wa2hLTVZwVWIwdE',
-'pRMEZuU1VOQlowbERRbWhaTTFKd1pHMVdabU5JU25abFIyeHNZ',
-'M2xCT1VsR2MwdEpRMEZuU1VOQlowbERRV2RKUTBGblkwaEtkbV',
-'ZJYTJkYWJUbDVTVWhDZVdJemFEVkpSMngxU1VkR2MySkdPWGRq',
-'YlRrMFlWZFdla2xIYkcxSlIyeDZXRE5hYUdKSGJHdFlNMEo1WW',
-'pOb05VdElRbmxpTTJnMVMxWXhZazlxUlhkTlJqQkxTVU5CWjBs',
-'RFFXZEpRMEl3V1ZoT2NtTjVRVGxKU0hSb1l6TnNkVmt5YkhaTW',
-'JVNTVXbGRHTUZwV09UQlpXRTV5UzBoS2JHSnRVbXhqYkRsM1ky',
-'MDViV0ZYZUd4WU1teDFXbTA0YjBOcFFXZEpRMEZuU1VOQlowbE',
-'RRV2RKU0VKNVlqTm9OVXhEUWpCaU1uUnNZbWxyY0U5cFFuZGpi',
-'VGswWlZOQ2JXSXpTV2RqU0VwMlpVaHJaMkZYTkdkWlYwNHdZVm',
-'hhYkZnelFubGlNMmh3V2xoT09VTm5iMmRKUTBGblNVTkJaMGxI',
-'VW5aaWJWVnpTVWhDYkdKdFVuQmliV05uVUZOQ2FHUXlSbkJrUT',
-'BKb1l6TnNkVmt5YkhaTWJtUm9ZVmhSYjJSSFJucGhNMDExWVRK',
-'V05XTjVaM0JNUTBKNVdsaFNNV050Tldaa01taHNZbW94YUdNem',
-'JIVlpNbXgyVEd0YVNsVnNUbFZZTUU1UVZGWkNUVkpXVWtaU1Ey',
-'dExTVU5CWjBsRFFXZEpRMEp0WWpOSloyUkhSbnBoZVVKd1ltbE',
-'NhMkl5Tld4UFoyOW5TVU5CWjBsRFFXZEpRMEZuU1VOQ2JWbFhi',
-'SE5hVjFKbVkwaEtkbVZJYTJkUVUwSXdXVmhPY21NeGREQlpXRT',
-'V5V0ZGdlowbERRV2RKUTBGblNVTkJaMGxEUW5CYWFVSXdXVmhP',
-'Y2t4dVNteGpNMVp6WkVObmNFbEhiSHBKUlRWMlltMVZOa05wUV',
-'dkSlEwRm5TVU5CWjBsRFFXZEpRMEZuU1VOQ2MySXlaRzVhV0Vs',
-'MVlWYzFiV0o1YUcxSmJFcHNZbGM1TW1GWE5XNUpSMFoxV2tOQ2',
-'VWcFlRbk5aVjA1d1ltMWpaMXB0Um5CaVIxWnJTVWhDZVdJemFE',
-'VlBhVUkzV20xR2NHSkhWbXRZTTBKNVlqTm9OV1pUU1hCRGFVRm',
-'5TVU5CWjBsRFFXZEpRMEZuU1VOQlowbERRbWhaTTFKd1pHMVda',
-'bU5JU25abFIyeHNZM2sxZVZwWE1YWmtiVlZ2V20xR2NHSkhWbX',
-'RZTTBKNVlqTm9OVXRSYjJkSlEwRm5TVU5CWjBsRFFXZEpRMEZu',
-'U1VOQloyRlhXV2RaVjNoeldETkNlV0l6YUhCYVdFMDJRMmxCWj',
-'BsRFFXZEpRMEZuU1VOQlowbERRV2RKUTBGblNVTkJaMkp0VmpO',
-'WU0wSjVZak5vTlVsRU1HZFpWM2h6V0ROQ2VXSXphSEJhV0UxMV',
-'kwYzVkMHRFUVhCRGFVRm5TVU5CWjBsRFFXZEpRMEZuU1VOQlow',
-'bERRV2RKUTBGbllWZFpaMkZZVG1aa2JVWnpZVmRTWm1OSVNuWm',
-'xTR3R2WW0xV00xZ3pRbmxpTTJnMVMxUnZTMGxEUVdkSlEwRm5T',
-'VU5CWjBsRFFXZEpRMEZuU1VOQlowbERRV2RKUTBGbldWZE9NR0',
-'ZZV214WU0wSjVZak5vY0ZwWVRYVlpXRUozV2xjMWEwdEhOV3hr',
-'TVRsM1kyMDVOR1ZUYTB0SlEwRm5TVU5CWjBsRFFXZEpRMEZuU1',
-'VOQlowbERRV2RKUTBGblNVTkJaMkp0VmpOWU0xSm9Zekp6WjFC',
-'VFFtaGpNMngxV1RKc2RreHRUbmxhVjBZd1dsWTVNRmxZVG5KTF',
-'FXOW5TVU5CWjBsRFFXZEpRMEZuU1VOQlowbERRV2RKUTBGblNV',
-'TkJaMGxEUVdkSlEwRm5ZMjFXZFZwSFZubFlNMEo1WWpKYWNHSk',
-'hWbVpoVnpWdFlubG9kVnBZWkdaalNFcDJaVWhyYzBsSVVuWmhN',
-'bFoxUzFOclMwbERRV2RKUTBGblNVTkJaMGxEUVdkSlEwRm5TVU',
-'5CWjBsRFFXZEpRMEZuWkVkR2VtRXpUbUppYlZZeldETlNhR015',
-'ZEdSSlJEQm5ZbTFXTTFnelFubGlNMmcxUTJsQlowbERRV2RKUT',
-'BGblNVTkJaMGxJVW1oak1uUjZURzVDZG1ORGFEQlpXRTV5UzFG',
-'dlMwbERRV2RKUTBGblNVTkNiV0l6U1dkalNFcDJaVWhyWjJGWE',
-'5HZGpNbFl3UzBkR2FtUkhiREphVmpsM1kyMDVOR0ZYVm5wTFUw',
-'RjBTVWhPYkdSRGFEQlpXRTV5WTNrMU1sbFhlREZhV0UxdlMxTn',
-'JOa05wUVdkSlEwRm5TVU5CWjBsRFFXZEpSelZzWkRFNU1GbFlU',
-'bkpKUkRCbldWaE9OV0p0VG5CaWVUVnFZMjFXYUdSSFZtWmtSMF',
-'o2WVhsblMwbERRV2RKUTBGblNVTkJaMGxEUVdkSlEwRm5TVWhL',
-'YkdKdFVteGpiRGwzWTIwNWJXRlhlR3hZTW14MVdtMDRiMk5JU2',
-'5abFNHdHpTVWhTZG1FeVZuVkxVMnRMU1VOQlowbERRV2RKUTBG',
-'blNVTkJaMlJIUm5waE0wNWlZbTFXTTFnelVtaGpNblJrU1VRd1',
-'oyTklTblpsU0d0TFNVTkJaMGxEUVdkSlEwSm9aREpHY0dSRFFt',
-'aGpNMngxV1RKc2RreHVUbk5hVjFaM1MwUk5jRU5wUVdkSlEwSm',
-'9aREpHY0dSRFFtaGpNMngxV1RKc2RreHVUbk5hVjFaM1MwUkZk',
-'MHRUUVdkRFozQndXbWxDWmxneU5XaGlWMVptV0hsQk9WQlRRVz',
-'VZTVRsMFdWZHNkVmd4T0c1UFoyOW5TVU5CWjJNeWFIWmtNVGt6',
-'V1ZoS2RXRlhOVzVMUTJ0TFNVTkJaMGxJUW5saFZ6VXdTME5LWT',
-'JKcmJIVmpNbFo1WkVOQ05XSXpWbmxKUnpWMldrZFdkMWxZYTJk',
-'a1J6bHlXbGMxWTJKc1VuWmhNbFoxU1VoT01GbFlTakJoVnpWdV',
-'NVaGtjR1JIWjJkYVdHeG5aVWhvTkZsR2VIVkphV3RMU1VOQlow',
-'bElVbmxsVkc5TFNVTkJaMGxEUVdkSlEwSm9Zek5zZFZreWJIWk',
-'1ia294WW1sb2RGbFhiSFZMUTJ0d1EybEJaMGxEUW14bFIwNXNZ',
-'MGhSWjB0RmRHeGxWMHAyV1ZoS2ExTlhOVEJhV0VwNVpGaENNRX',
-'hEUWxSbFdFNHdXbGN4Um1WSGJEQkxWRzlMU1VOQlowbERRV2RK',
-'UTBKellqSmtibHBZU1hWaFZ6VnRZbmxuYVZWSVNuWmFNMHBvWW',
-'xOQ01GcFlTblJoVnpWb1pFZFdhMGxIU2pWSlNGWjZXbGhKZFVs',
-'cGEwcz0=']
+        ██╗███╗   ██╗███████╗██╗██████╗ ███████╗██████╗     
+        ██║████╗  ██║██╔════╝██║██╔══██╗██╔════╝██╔══██╗    
+        ██║██╔██╗ ██║███████╗██║██║  ██║█████╗  ██████╔╝    
+        ██║██║╚██╗██║╚════██║██║██║  ██║██╔══╝  ██╔══██╗    
+        ██║██║ ╚████║███████║██║██████╔╝███████╗██║  ██║    
+        ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝{Fore.RESET}
+    """
+    
+    # Tampilkan ASCII art
+    print(custom_ascii_art)
+    print(f"{Fore.YELLOW}NODEPAY NETWORK BOT")
+    print("Telegram : t.me/AirdropInsiderID", Fore.RESET)
 
-bKa52wmd = GXG9Rihl(m8qDEWU2)
-for _ in range(3):
-    bKa52wmd = mSBNgGE3(bKa52wmd).decode('utf-8')
-hMi9U3yt(bKa52wmd)
+display_header()
+
+def show_warning():
+    confirm = input("\nPress Enter to continue or Ctrl+C to cancel... ")
+
+    if confirm.strip() == "":
+        print("Continuing...")
+    else:
+        print("Exiting...")
+        exit()
+
+# Constants
+PING_INTERVAL = 60
+RETRIES = 60
+
+DOMAIN_API = {
+    "SESSION": "http://18.136.143.169/api/auth/session",
+    "PING": "http://52.77.10.116/api/network/ping"
+}
+
+CONNECTION_STATES = {
+    "CONNECTED": 1,
+    "DISCONNECTED": 2,
+    "NONE_CONNECTION": 3
+}
+
+status_connect = CONNECTION_STATES["NONE_CONNECTION"]
+browser_id = None
+account_info = {}
+last_ping_time = {}  
+
+def uuidv4():
+    return str(uuid.uuid4())
+    
+def valid_resp(resp):
+    if not resp or "code" not in resp or resp["code"] < 0:
+        raise ValueError("Invalid response")
+    return resp
+
+def load_proxies(proxy_file):
+    try:
+        with open(proxy_file, 'r') as file:
+            proxies = file.read().splitlines()
+        return proxies
+    except Exception as e:
+        logger.error(f"Failed to load proxies: {e}")
+        raise SystemExit("Exiting due to failure in loading proxies")
+
+async def render_profile_info(proxy, token):
+    global browser_id, account_info
+
+    try:
+        np_session_info = load_session_info(proxy)
+
+        if not np_session_info:
+            # Generate new browser_id
+            browser_id = uuidv4()
+            response = await call_api(DOMAIN_API["SESSION"], {}, proxy, token)
+            valid_resp(response)
+            account_info = response["data"]
+            if account_info.get("uid"):
+                save_session_info(proxy, account_info)
+                await start_ping(proxy, token)
+            else:
+                handle_logout(proxy)
+        else:
+            account_info = np_session_info
+            await start_ping(proxy, token)
+    except Exception as e:
+        logger.error(f"Error in render_profile_info for proxy {proxy}: {e}")
+        error_message = str(e)
+        if any(phrase in error_message for phrase in [
+            "sent 1011 (internal error) keepalive ping timeout; no close frame received",
+            "500 Internal Server Error"
+        ]):
+            logger.info(f"Removing error proxy from the list: {proxy}")
+            remove_proxy_from_list(proxy)
+            return None
+        else:
+            logger.error(f"Connection error: {e}")
+            return proxy
+
+async def call_api(url, data, proxy, token):
+    user_agent = UserAgent(os=['windows', 'macos', 'linux'], browsers='chrome')
+    random_user_agent = user_agent.random
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "User-Agent": random_user_agent,
+        "Content-Type": "application/json",
+        "Origin": "chrome-extension://lgmpfmgeabnnlemejacfljbmonaomfmm",
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.5",
+    }
+
+    try:
+        scraper = cloudscraper.create_scraper()
+
+        response = scraper.post(url, json=data, headers=headers, proxies={
+                                "http": proxy, "https": proxy}, timeout=30)
+
+        response.raise_for_status()
+        return valid_resp(response.json())
+    except Exception as e:
+        logger.error(f"Error during API call: {e}")
+        raise ValueError(f"Failed API call to {url}")
+
+async def start_ping(proxy, token):
+    try:
+        while True:
+            await ping(proxy, token)
+            await asyncio.sleep(PING_INTERVAL)
+    except asyncio.CancelledError:
+        logger.info(f"Ping task for proxy {proxy} was cancelled")
+    except Exception as e:
+        logger.error(f"Error in start_ping for proxy {proxy}: {e}")
+        
+async def ping(proxy, token):
+    global last_ping_time, RETRIES, status_connect
+
+    current_time = time.time()
+
+    if proxy in last_ping_time and (current_time - last_ping_time[proxy]) < PING_INTERVAL:
+        logger.info(f"Skipping ping for proxy { proxy}, not enough time elapsed")
+        return
+
+    last_ping_time[proxy] = current_time
+
+    try:
+        data = {
+            "id": account_info.get("uid"),
+            "browser_id": browser_id,  
+            "timestamp": int(time.time()),
+            "version": "2.2.7"
+        }
+
+        response = await call_api(DOMAIN_API["PING"], data, proxy, token)
+        if response["code"] == 0:
+            logger.info(f"Ping successful via proxy {proxy}: {response}")
+            RETRIES = 0
+            status_connect = CONNECTION_STATES["CONNECTED"]
+        else:
+            handle_ping_fail(proxy, response)
+    except Exception as e:
+        logger.error(f"Ping failed via proxy {proxy}: {e}")
+        handle_ping_fail(proxy, None)
+
+def handle_ping_fail(proxy, response):
+    global RETRIES, status_connect
+
+    RETRIES += 1
+    if response and response.get("code") == 403:
+        handle_logout(proxy)
+    elif RETRIES < 2:
+        status_connect = CONNECTION_STATES["DISCONNECTED"]
+    else:
+        status_connect = CONNECTION_STATES["DISCONNECTED"]
+
+def handle_logout(proxy):
+    global status_connect, account_info
+
+    status_connect = CONNECTION_STATES["NONE_CONNECTION"]
+    account_info = {}
+    save_status(proxy, None)
+    logger.info(f"Logged out and cleared session info for proxy {proxy}")
+
+def save_status(proxy, status):
+    pass  
+
+def save_session_info(proxy, data):
+    data_to_save = {
+        "uid": data.get("uid"),
+        "browser_id": browser_id  
+    }
+    pass
+
+def load_session_info(proxy):
+    return {}  
+
+def is_valid_proxy(proxy):
+    return True  
+
+def remove_proxy_from_list(proxy):
+    pass  
+
+async def main():
+    proxy_choice = input("Choose proxy mode: [1] Auto-fetch proxies or [2] Load from proxies.txt: ").strip()
+
+    if proxy_choice == "1":
+        r = requests.get("https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text", stream=True)
+        if r.status_code == 200:
+            with open('auto_proxies.txt', 'wb') as f:
+                for chunk in r:
+                    f.write(chunk)
+        all_proxies = load_proxies('auto_proxies.txt')
+    elif proxy_choice == "2":
+        all_proxies = load_proxies('proxies.txt')
+    else:
+        print("Invalid choice. Exiting.")
+        return
+
+    token = input("Nodepay token: ").strip()
+    if not token:
+        print("Token cannot be empty. Exiting the program.")
+        exit()
+
+    while True:
+        active_proxies = [proxy for proxy in all_proxies if is_valid_proxy(proxy)][:100]
+        tasks = {asyncio.create_task(render_profile_info(proxy, token)): proxy for proxy in active_proxies}
+
+        done, pending = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
+        for task in done:
+            failed_proxy = tasks[task]
+            if task.result() is None:
+                logger.info(f"Removing and replacing failed proxy: {failed_proxy}")
+                active_proxies.remove(failed_proxy)
+                if all_proxies:
+                    new_proxy = all_proxies.pop(0)
+                    if is_valid_proxy(new_proxy):
+                        active_proxies.append(new_proxy)
+                        new_task = asyncio.create_task(render_profile_info(new_proxy, token))
+                        tasks[new_task] = new_proxy
+            tasks.pop(task)
+
+        for proxy in set(active_proxies) - set(tasks.values()):
+            new_task = asyncio.create_task(render_profile_info(proxy, token))
+            tasks[new_task] = proxy
+        await asyncio.sleep(3)
+    await asyncio.sleep(10)
+
+if __name__ == '__main__':
+    show_warning()
+    print("\nInsert your Nodepay Token")
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Program terminated by user.")
