@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 import time
 import uuid
+import random
 import cloudscraper
 import pyfiglet
 from colorama import Fore
@@ -47,10 +48,23 @@ def show_warning():
 PING_INTERVAL = 15  # Reduced ping interval for faster monitoring
 RETRIES = 3  # Limit retries to avoid delays
 
-DOMAIN_API = {
-    "SESSION": "https://api.nodepay.ai/api/auth/session",
-    "PING": "http://52.77.10.116/api/network/ping"
+DOMAIN_API_ENDPOINTS = {
+    "SESSION": [
+        "https://api.nodepay.ai/api/auth/session"
+    ],
+    "PING": [
+        "http://52.77.10.116/api/network/ping",
+        "http://13.215.134.222/api/network/ping"
+    ]
 }
+
+def get_random_endpoint(endpoint_type):
+    return random.choice(DOMAIN_API_ENDPOINTS[endpoint_type])
+
+def get_endpoint(endpoint_type):
+    if endpoint_type not in DOMAIN_API_ENDPOINTS:
+        raise ValueError(f"Unknown endpoint type: {endpoint_type}")
+    return get_random_endpoint(endpoint_type)
 
 CONNECTION_STATES = {
     "CONNECTED": 1,
@@ -102,7 +116,7 @@ async def render_profile_info(account_label, proxy, token):
         if not np_session_info:
             # Generate new browser_id
             browser_id = uuidv4()
-            response = await call_api(DOMAIN_API["SESSION"], {}, proxy, token)
+            response = await call_api(get_endpoint("SESSION"), {}, proxy, token)
             valid_resp(response)
             account_info = response["data"]
             if account_info.get("uid"):
@@ -168,7 +182,7 @@ async def ping(account_label, proxy, token):
             "version": "2.2.7"
         }
 
-        response = await call_api(DOMAIN_API["PING"], data, proxy, token)
+        response = await call_api(get_endpoint("PING"), data, proxy, token)
         if response["code"] == 0:
             logger.info(f"[{account_label}] Ping successful via proxy {proxy}: {response}")
             RETRIES = 0
