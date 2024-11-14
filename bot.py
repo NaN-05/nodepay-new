@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 import time
 import uuid
+import random
 import cloudscraper
 import pyfiglet
 from colorama import Fore
@@ -10,7 +11,6 @@ from loguru import logger
 from fake_useragent import UserAgent
 
 def display_header():
-    # Tambahkan ASCII art yang sudah Anda sediakan
     custom_ascii_art = f"""
     {Fore.CYAN}
          █████╗ ██╗██████╗ ██████╗ ██████╗  ██████╗ ██████╗ 
@@ -27,8 +27,6 @@ def display_header():
         ██║██║ ╚████║███████║██║██████╔╝███████╗██║  ██║    
         ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝{Fore.RESET}
     """
-    
-    # Tampilkan ASCII art
     print(custom_ascii_art)
     print(f"{Fore.YELLOW}NODEPAY NETWORK BOT")
     print("Telegram : t.me/AirdropInsiderID", Fore.RESET)
@@ -37,7 +35,6 @@ display_header()
 
 def show_warning():
     confirm = input("\nPress Enter to continue or Ctrl+C to cancel... ")
-
     if confirm.strip() == "":
         print("Continuing...")
     else:
@@ -48,10 +45,23 @@ def show_warning():
 PING_INTERVAL = 60
 RETRIES = 60
 
-DOMAIN_API = {
-    "SESSION": "https://api.nodepay.ai/api/auth/session",
-    "PING": "http://52.77.10.116/api/network/ping"
+DOMAIN_API_ENDPOINTS = {
+    "SESSION": [
+        "https://api.nodepay.ai/api/auth/session"
+    ],
+    "PING": [
+        "http://52.77.10.116/api/network/ping",
+        "http://13.215.134.222/api/network/ping"
+    ]
 }
+
+def get_random_endpoint(endpoint_type):
+    return random.choice(DOMAIN_API_ENDPOINTS[endpoint_type])
+
+def get_endpoint(endpoint_type):
+    if endpoint_type not in DOMAIN_API_ENDPOINTS:
+        raise ValueError(f"Unknown endpoint type: {endpoint_type}")
+    return get_random_endpoint(endpoint_type)
 
 CONNECTION_STATES = {
     "CONNECTED": 1,
@@ -86,11 +96,10 @@ async def render_profile_info(proxy, token):
 
     try:
         np_session_info = load_session_info(proxy)
-
         if not np_session_info:
             # Generate new browser_id
             browser_id = uuidv4()
-            response = await call_api(DOMAIN_API["SESSION"], {}, proxy, token)
+            response = await call_api(get_endpoint("SESSION"), {}, proxy, token)
             valid_resp(response)
             account_info = response["data"]
             if account_info.get("uid"):
@@ -129,7 +138,6 @@ async def call_api(url, data, proxy, token):
 
     try:
         scraper = cloudscraper.create_scraper()
-
         response = scraper.post(url, json=data, headers=headers, proxies={
                                 "http": proxy, "https": proxy}, timeout=30)
 
@@ -155,7 +163,7 @@ async def ping(proxy, token):
     current_time = time.time()
 
     if proxy in last_ping_time and (current_time - last_ping_time[proxy]) < PING_INTERVAL:
-        logger.info(f"Skipping ping for proxy { proxy}, not enough time elapsed")
+        logger.info(f"Skipping ping for proxy {proxy}, not enough time elapsed")
         return
 
     last_ping_time[proxy] = current_time
@@ -168,7 +176,7 @@ async def ping(proxy, token):
             "version": "2.2.7"
         }
 
-        response = await call_api(DOMAIN_API["PING"], data, proxy, token)
+        response = await call_api(get_endpoint("PING"), data, proxy, token)
         if response["code"] == 0:
             logger.info(f"Ping successful via proxy {proxy}: {response}")
             RETRIES = 0
@@ -228,7 +236,7 @@ async def main():
                     f.write(chunk)
         all_proxies = load_proxies('auto_proxies.txt')
     elif proxy_choice == "2":
-        all_proxies = load_proxies('proxies.txt')
+        all_proxies = load_proxies('proxi.txt')
     else:
         print("Invalid choice. Exiting.")
         return
