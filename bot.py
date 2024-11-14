@@ -47,7 +47,7 @@ RETRIES = 60
 
 DOMAIN_API_ENDPOINTS = {
     "SESSION": [
-        "https://api.nodepay.ai/api/auth/session"
+        "http://api.nodepay.ai/api/auth/session"
     ],
     "PING": [
         "http://52.77.10.116/api/network/ping",
