@@ -236,7 +236,7 @@ async def main():
                     f.write(chunk)
         all_proxies = load_proxies('auto_proxies.txt')
     elif proxy_choice == "2":
-        all_proxies = load_proxies('proxi.txt')
+        all_proxies = load_proxies('proxies.txt')
     else:
         print("Invalid choice. Exiting.")
         return
