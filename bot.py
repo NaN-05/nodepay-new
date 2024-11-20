@@ -57,7 +57,8 @@ DOMAIN_API_ENDPOINTS = {
         "http://18.142.214.13/api/network/ping",
         "http://52.74.31.107/api/network/ping",
         "http://52.74.35.173/api/network/ping",
-        "http://52.77.10.116/api/network/ping"
+        "http://52.77.10.116/api/network/ping",
+        "http://3.1.154.253/api/network/ping"
     ]
 }
 
