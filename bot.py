@@ -232,6 +232,36 @@ def is_valid_proxy(proxy):
 def remove_proxy_from_list(proxy):
     pass  
 
+async def validate_proxies(proxies, token):
+    """
+    Validates the list of proxies and selects up to 3 working proxies.
+    """
+    active_proxies = []
+    tasks = {asyncio.create_task(test_proxy(proxy, token)): proxy for proxy in proxies}
+
+    # Wait for tasks to complete
+    done, _ = await asyncio.wait(tasks.keys(), return_when=asyncio.ALL_COMPLETED)
+    for task in done:
+        proxy = tasks[task]
+        if task.result():  # If the proxy is valid
+            active_proxies.append(proxy)
+        if len(active_proxies) >= 3:  # Stop once we have 3 valid proxies
+            break
+    return active_proxies
+
+
+async def test_proxy(proxy, token):
+    """
+    Tests if a proxy is valid by making a simple API call.
+    """
+    try:
+        response = await call_api(get_endpoint("PING"), {"test": True}, proxy, token)
+        return response["code"] == 0  # Proxy is valid if response code is 0
+    except Exception as e:
+        logger.error(f"Proxy {proxy} failed validation: {e}")
+        return False
+
+
 async def main():
     proxy_choice = input("Choose proxy mode: [1] Auto-fetch proxies or [2] Load from proxies.txt: ").strip()
 
@@ -254,26 +284,26 @@ async def main():
         exit()
 
     while True:
-        active_proxies = [proxy for proxy in all_proxies if is_valid_proxy(proxy)][:100]
-        tasks = {asyncio.create_task(render_profile_info(proxy, token)): proxy for proxy in active_proxies}
+        # Validate proxies and get up to 3 working proxies
+        selected_proxies = await validate_proxies(all_proxies, token)
+        if not selected_proxies:
+            logger.error("No valid proxies found. Retrying...")
+            await asyncio.sleep(10)
+            continue
 
+        logger.info(f"Using proxies: {selected_proxies}")
+        
+        # Create tasks for each valid proxy
+        tasks = {asyncio.create_task(render_profile_info(proxy, token)): proxy for proxy in selected_proxies}
+
+        # Monitor tasks
         done, pending = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
         for task in done:
             failed_proxy = tasks[task]
             if task.result() is None:
                 logger.info(f"Removing and replacing failed proxy: {failed_proxy}")
-                active_proxies.remove(failed_proxy)
-                if all_proxies:
-                    new_proxy = all_proxies.pop(0)
-                    if is_valid_proxy(new_proxy):
-                        active_proxies.append(new_proxy)
-                        new_task = asyncio.create_task(render_profile_info(new_proxy, token))
-                        tasks[new_task] = new_proxy
-            tasks.pop(task)
-
-        for proxy in set(active_proxies) - set(tasks.values()):
-            new_task = asyncio.create_task(render_profile_info(proxy, token))
-            tasks[new_task] = proxy
+                if failed_proxy in selected_proxies:
+                    selected_proxies.remove(failed_proxy)
         await asyncio.sleep(3)
     await asyncio.sleep(10)
 
