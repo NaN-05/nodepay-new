@@ -1,14 +1,11 @@
-import requests
 import asyncio
 import aiohttp
 import time
 import uuid
 import random
 import cloudscraper
-import pyfiglet
-from colorama import Fore
 from loguru import logger
-from fake_useragent import UserAgent
+from colorama import Fore
 
 def display_header():
     custom_ascii_art = f"""
@@ -30,32 +27,38 @@ def display_header():
     print(custom_ascii_art)
     print(f"{Fore.YELLOW}NODEPAY NETWORK BOT")
     print("Telegram : t.me/AirdropInsiderID", Fore.RESET)
+    print("")
 
 display_header()
 
 def show_warning():
-    confirm = input("\nPress Enter to continue or Ctrl+C to cancel... ")
+    confirm = input("SINGLE ACCOUNT NODEPAY BOT \n\nPress Enter to continue or Ctrl+C to cancel... ")
+
     if confirm.strip() == "":
         print("Continuing...")
     else:
         print("Exiting...")
         exit()
-
 # Constants
 PING_INTERVAL = 60
 RETRIES = 60
 
+# OLD Domain API
+# PING API: https://nodewars.nodepay.ai / https://nw.nodepay.ai | https://nw2.nodepay.ai | IP: 54.255.192.166
+# SESSION API: https://api.nodepay.ai | IP: 18.136.143.169, 52.77.170.182
+
+# NEW HOST DOMAIN
+#    "SESSION": "https://api.nodepay.org/api/auth/session",
+#    "PING": "https://nw.nodepay.org/api/network/ping"
+
+# Testing | Found nodepay real ip address :P | Cloudflare host bypassed!
 DOMAIN_API_ENDPOINTS = {
     "SESSION": [
         "http://api.nodepay.ai/api/auth/session"
     ],
     "PING": [
-        #"http://54.255.192.166/api/network/ping",
         "http://13.215.134.222/api/network/ping",
         "http://18.139.20.49/api/network/ping",
-        "http://18.142.29.174/api/network/ping",
-        "http://18.142.214.13/api/network/ping",
-        "http://52.74.31.107/api/network/ping",
         "http://52.74.35.173/api/network/ping",
         "http://52.77.10.116/api/network/ping",
         "http://3.1.154.253/api/network/ping"
@@ -88,21 +91,13 @@ def valid_resp(resp):
     if not resp or "code" not in resp or resp["code"] < 0:
         raise ValueError("Invalid response")
     return resp
-
-def load_proxies(proxy_file):
-    try:
-        with open(proxy_file, 'r') as file:
-            proxies = file.read().splitlines()
-        return proxies
-    except Exception as e:
-        logger.error(f"Failed to load proxies: {e}")
-        raise SystemExit("Exiting due to failure in loading proxies")
-
+    
 async def render_profile_info(proxy, token):
     global browser_id, account_info
 
     try:
         np_session_info = load_session_info(proxy)
+
         if not np_session_info:
             # Generate new browser_id
             browser_id = uuidv4()
@@ -132,19 +127,18 @@ async def render_profile_info(proxy, token):
             return proxy
 
 async def call_api(url, data, proxy, token):
-    user_agent = UserAgent(os=['windows', 'macos', 'linux'], browsers='chrome')
-    random_user_agent = user_agent.random
     headers = {
         "Authorization": f"Bearer {token}",
-        "User-Agent": random_user_agent,
         "Content-Type": "application/json",
-        "Origin": "chrome-extension://lgmpfmgeabnnlemejacfljbmonaomfmm",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0",
         "Accept": "application/json",
         "Accept-Language": "en-US,en;q=0.5",
+        "Origin": "chrome-extension://lgmpfmgeabnnlemejacfljbmonaomfmm",
     }
 
     try:
         scraper = cloudscraper.create_scraper()
+
         response = scraper.post(url, json=data, headers=headers, proxies={
                                 "http": proxy, "https": proxy}, timeout=30)
 
@@ -180,7 +174,7 @@ async def ping(proxy, token):
             "id": account_info.get("uid"),
             "browser_id": browser_id,  
             "timestamp": int(time.time()),
-            "version": "2.2.7"
+            "version":"2.2.7"
         }
 
         response = await call_api(get_endpoint("PING"), data, proxy, token)
@@ -213,6 +207,15 @@ def handle_logout(proxy):
     save_status(proxy, None)
     logger.info(f"Logged out and cleared session info for proxy {proxy}")
 
+def load_proxies(proxy_file):
+    try:
+        with open(proxy_file, 'r') as file:
+            proxies = file.read().splitlines()
+        return proxies
+    except Exception as e:
+        logger.error(f"Failed to load proxies: {e}")
+        raise SystemExit("Exiting due to failure in loading proxies")
+
 def save_status(proxy, status):
     pass  
 
@@ -232,84 +235,45 @@ def is_valid_proxy(proxy):
 def remove_proxy_from_list(proxy):
     pass  
 
-async def validate_proxies(proxies, token):
-    """
-    Validates the list of proxies and selects up to 3 working proxies.
-    """
-    active_proxies = []
-    tasks = {asyncio.create_task(test_proxy(proxy, token)): proxy for proxy in proxies}
-
-    # Wait for tasks to complete
-    done, _ = await asyncio.wait(tasks.keys(), return_when=asyncio.ALL_COMPLETED)
-    for task in done:
-        proxy = tasks[task]
-        if task.result():  # If the proxy is valid
-            active_proxies.append(proxy)
-        if len(active_proxies) >= 3:  # Stop once we have 3 valid proxies
-            break
-    return active_proxies
-
-
-async def test_proxy(proxy, token):
-    """
-    Tests if a proxy is valid by making a simple API call.
-    """
-    try:
-        response = await call_api(get_endpoint("PING"), {"test": True}, proxy, token)
-        return response["code"] == 0  # Proxy is valid if response code is 0
-    except Exception as e:
-        logger.error(f"Proxy {proxy} failed validation: {e}")
-        return False
-
-
 async def main():
-    proxy_choice = input("Choose proxy mode: [1] Auto-fetch proxies or [2] Load from proxies.txt: ").strip()
-
-    if proxy_choice == "1":
-        r = requests.get("https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=text", stream=True)
-        if r.status_code == 200:
-            with open('auto_proxies.txt', 'wb') as f:
-                for chunk in r:
-                    f.write(chunk)
-        all_proxies = load_proxies('auto_proxies.txt')
-    elif proxy_choice == "2":
-        all_proxies = load_proxies('proxies.txt')
-    else:
-        print("Invalid choice. Exiting.")
-        return
-
+    all_proxies = load_proxies('proxies.txt')  
+    # Take token input directly from the user
     token = input("Nodepay token: ").strip()
     if not token:
         print("Token cannot be empty. Exiting the program.")
         exit()
 
     while True:
-        # Validate proxies and get up to 3 working proxies
-        selected_proxies = await validate_proxies(all_proxies, token)
-        if not selected_proxies:
-            logger.error("No valid proxies found. Retrying...")
-            await asyncio.sleep(10)
-            continue
+        active_proxies = [
+            proxy for proxy in all_proxies if is_valid_proxy(proxy)][:100]
+        tasks = {asyncio.create_task(render_profile_info(
+            proxy, token)): proxy for proxy in active_proxies}
 
-        logger.info(f"Using proxies: {selected_proxies}")
-        
-        # Create tasks for each valid proxy
-        tasks = {asyncio.create_task(render_profile_info(proxy, token)): proxy for proxy in selected_proxies}
-
-        # Monitor tasks
         done, pending = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
         for task in done:
             failed_proxy = tasks[task]
             if task.result() is None:
                 logger.info(f"Removing and replacing failed proxy: {failed_proxy}")
-                if failed_proxy in selected_proxies:
-                    selected_proxies.remove(failed_proxy)
+                active_proxies.remove(failed_proxy)
+                if all_proxies:
+                    new_proxy = all_proxies.pop(0)
+                    if is_valid_proxy(new_proxy):
+                        active_proxies.append(new_proxy)
+                        new_task = asyncio.create_task(
+                            render_profile_info(new_proxy, token))
+                        tasks[new_task] = new_proxy
+            tasks.pop(task)
+
+        for proxy in set(active_proxies) - set(tasks.values()):
+            new_task = asyncio.create_task(
+                render_profile_info(proxy, token))
+            tasks[new_task] = proxy
         await asyncio.sleep(3)
-    await asyncio.sleep(10)
+    await asyncio.sleep(10)  
 
 if __name__ == '__main__':
     show_warning()
-    print("\nInsert your Nodepay Token")
+    print("\nInsert Your Nodepay Token! ")
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
