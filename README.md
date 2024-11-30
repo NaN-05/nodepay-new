@@ -29,6 +29,10 @@ pip install -r requirements.txt
 ```bash
 python bot.py
 ```
+- Run Multi :
+```bash
+python multi.py
+```
 - Press Enter then insert your nodepay token
 # Operating status
 If the following log appears, it means it is running successfully.
