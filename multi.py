@@ -50,6 +50,7 @@ DOMAIN_API_ENDPOINTS = {
         "http://api.nodepay.ai/api/auth/session"
     ],
     "PING": [
+        "https://nw.nodepay.org/api/network/ping",
         "http://18.142.29.174/api/network/ping",
         "http://13.215.134.222/api/network/ping",
         "http://18.139.20.49/api/network/ping",
